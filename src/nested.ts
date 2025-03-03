@@ -1,5 +1,6 @@
 import { Answer } from "./interfaces/answer";
 import { Question, QuestionType } from "./interfaces/question";
+import { makeBlankQuestion } from "./objects";
 
 /**
  * Consumes an array of questions and returns a new array with only the questions
@@ -182,7 +183,15 @@ export function addNewQuestion(
     name: string,
     type: QuestionType,
 ): Question[] {
-    return [];
+    return [
+        ...questions.map(
+            (question: Question): Question => ({
+                ...question,
+                options: [...question.options],
+            }),
+        ),
+        makeBlankQuestion(id, name, type),
+    ];
 }
 
 /***
@@ -195,7 +204,19 @@ export function renameQuestionById(
     targetId: number,
     newName: string,
 ): Question[] {
-    return [];
+    return questions.map(
+        (question: Question): Question =>
+            question.id === targetId ?
+                {
+                    ...question,
+                    options: [...question.options],
+                    name: newName,
+                }
+            :   {
+                    ...question,
+                    options: [...question.options],
+                },
+    );
 }
 
 /***
@@ -210,7 +231,25 @@ export function changeQuestionTypeById(
     targetId: number,
     newQuestionType: QuestionType,
 ): Question[] {
-    return [];
+    return questions.map(
+        (question: Question): Question =>
+            question.id === targetId ?
+                newQuestionType === "short_answer_question" ?
+                    {
+                        ...question,
+                        options: [],
+                        type: newQuestionType,
+                    }
+                :   {
+                        ...question,
+                        options: [...question.options],
+                        type: newQuestionType,
+                    }
+            :   {
+                    ...question,
+                    options: [...question.options],
+                },
+    );
 }
 
 /**
@@ -223,13 +262,30 @@ export function changeQuestionTypeById(
  * Remember, if a function starts getting too complicated, think about how a helper function
  * can make it simpler! Break down complicated tasks into little pieces.
  */
+function changeOption(
+    targetOptionIndex: number,
+    newOption: string,
+    question: Question,
+): Question {
+    const oldOptions: string[] = [...question.options];
+    targetOptionIndex != -1 ?
+        oldOptions.splice(targetOptionIndex, 1, newOption)
+    :   oldOptions.splice(oldOptions.length, 0, newOption);
+    return { ...question, options: oldOptions };
+}
+
 export function editOption(
     questions: Question[],
     targetId: number,
     targetOptionIndex: number,
     newOption: string,
 ): Question[] {
-    return [];
+    return questions.map(
+        (question: Question): Question =>
+            question.id === targetId ?
+                changeOption(targetOptionIndex, newOption, question)
+            :   { ...question, options: [...question.options] },
+    );
 }
 
 /***
